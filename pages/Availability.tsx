@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react-native";
 import { ScrollView, TouchableOpacity, View, TextInput, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "../styles";
+import { TimePickerInput } from "../components/TimePickerInput";
 
 export function Availability({ setStep, profile, setProfile, handleGenerateSchedule, handleDayToggle }: any) {
     const days = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
@@ -41,18 +42,13 @@ export function Availability({ setStep, profile, setProfile, handleGenerateSched
                 </View>
               </View>
 
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>Horário preferido</Text>
-                <TextInput
-                  style={styles.inputCenter}
-                  placeholder="08:00"
+                <TimePickerInput
                   value={profile.availability?.time}
-                  onChangeText={(text) => setProfile({
+                  onChange={(time) => setProfile({
                     ...profile,
-                    availability: { ...profile.availability!, time: text }
+                    availability: { ...profile.availability!, time }
                   })}
                 />
-              </View>
             </View>
 
             <TouchableOpacity
