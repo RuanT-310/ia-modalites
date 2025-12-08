@@ -36,13 +36,16 @@ Retorne APENAS um JSON array válido neste formato (sem markdown):
         'x-goog-api-key': process.env.EXPO_PUBLIC_GEMINI_API_KEY || ''
       },
       body: JSON.stringify({
-        contents: [{ parts: [{ content: prompt }] }]
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json" 
+        }
       })
     });
 
     const data = await response.json();
     console.log('Resposta da IA:', data, process.env.EXPO_PUBLIC_GEMINI_API_KEY);
-    const textContent = data.content.find((c: any) => c.type === 'text')?.text || '[]';
+    const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const cleanJson = textContent.replace(/```json|```/g, '').trim();
     const schedule = JSON.parse(cleanJson);
     

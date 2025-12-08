@@ -1,42 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  StyleSheet, 
   View, 
   Text, 
-  TextInput, 
   TouchableOpacity, 
   ScrollView, 
   ActivityIndicator, 
-  Alert,
-  SafeAreaView,
-  StatusBar
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Calendar, CheckCircle, Clock, ChevronRight, ArrowLeft } from 'lucide-react-native';
+
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { Calendar, CheckCircle, Clock, ChevronRight } from 'lucide-react-native';
 import { ScheduleItem, UserAccount, UserProfile } from './types'; // Certifique-se que este arquivo existe
 import { generateSchedule } from './ia-service'; // Certifique-se que este arquivo existe
 import { EXERCISE_CATALOG } from './data'; // Certifique-se que este arquivo existe
 import { styles } from './styles';
+import { Availability } from './pages/Availability';
+import { Restrictions } from './pages/Restriction';
+import { SelectAge } from './pages/SelectAge';
+import { Welcome } from './pages/Welcome';
+import { ActivityCard } from './pages/ActivityCard';
+import { Register } from './pages/Register';
+import { Login } from './pages/Login';
+import { storage } from './storage';
 
 // Helper para simular a API do localStorage usando AsyncStorage
-const storage = {
-  get: async (key: string) => {
-    try {
-      const value = await AsyncStorage.getItem(key);
-      return value ? { value: JSON.parse(value) } : null; // Mantendo formato original { value: ... }
-    } catch (e) { return null; }
-  },
-  set: async (key: string, value: any) => {
-    try {
-      await AsyncStorage.setItem(key, JSON.stringify(value));
-    } catch (e) { console.error(e); }
-  },
-  delete: async (key: string) => {
-    try {
-      await AsyncStorage.removeItem(key);
-    } catch (e) { console.error(e); }
-  }
-};
+
 
 export default function App() {
   const [authStep, setAuthStep] = useState<'login' | 'register' | 'app'>('login');
@@ -305,326 +293,48 @@ export default function App() {
 
   // ==================== AUTH VIEWS ====================
   if (authStep === 'login') {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.headerSpace}>
-            <Text style={styles.appTitle}>AL Modalities</Text>
-            <Text style={styles.subtitle}>Entre na sua conta</Text>
-          </View>
-          
-          <View style={styles.card}>
-            {!!authError && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{authError}</Text>
-              </View>
-            )}
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={loginForm.email}
-              onChangeText={(text) => setLoginForm({ ...loginForm, email: text })}
-            />
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Senha"
-              secureTextEntry
-              value={loginForm.password}
-              onChangeText={(text) => setLoginForm({ ...loginForm, password: text })}
-            />
-            
-            <TouchableOpacity style={styles.buttonPrimary} onPress={handleLogin}>
-              <Text style={styles.buttonText}>Entrar</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              onPress={() => { setAuthStep('register'); setAuthError(''); }}
-              style={styles.linkButton}
-            >
-              <Text style={styles.linkText}>Não tem conta? Cadastre-se</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
+    return <Login 
+     setAuthStep={setAuthStep} authError={authError} setAuthError={setAuthError} 
+     loginForm={loginForm} setLoginForm={setLoginForm} 
+     handleLogin={handleLogin} />
   }
 
   if (authStep === 'register') {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.headerSpace}>
-            <Text style={styles.appTitle}>AL Modalities</Text>
-            <Text style={styles.subtitle}>Criar nova conta</Text>
-          </View>
-          
-          <View style={styles.card}>
-            {!!authError && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{authError}</Text>
-              </View>
-            )}
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={registerForm.email}
-              onChangeText={(text) => setRegisterForm({ ...registerForm, email: text })}
-            />
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Senha (mín. 6 caracteres)"
-              secureTextEntry
-              value={registerForm.password}
-              onChangeText={(text) => setRegisterForm({ ...registerForm, password: text })}
-            />
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Confirmar senha"
-              secureTextEntry
-              value={registerForm.confirmPassword}
-              onChangeText={(text) => setRegisterForm({ ...registerForm, confirmPassword: text })}
-            />
-            
-            <TouchableOpacity style={styles.buttonSuccess} onPress={handleRegister}>
-              <Text style={styles.buttonText}>Cadastrar</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              onPress={() => { setAuthStep('login'); setAuthError(''); }}
-              style={styles.linkButton}
-            >
-              <Text style={styles.linkText}>Já tem conta? Entre aqui</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
+    return <Register 
+     setAuthStep={setAuthStep} authError={authError} setAuthError={setAuthError} 
+     registerForm={registerForm} setRegisterForm={setRegisterForm} 
+     handleRegister={handleRegister} />
   }
 
   // ==================== APP VIEWS ====================
-  if (step === 'welcome') {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.scrollContent}>
-          <View style={styles.headerSpace}>
-            <Text style={styles.appTitle}>AL Modalities</Text>
-            <Text style={styles.subtitle}>Fitness personalizado para você</Text>
-          </View>
-          
-          <View style={styles.card}>
-            <Text style={styles.bodyText}>
-              Responda algumas perguntas rápidas e criaremos um programa de exercícios seguro e personalizado.
-            </Text>
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Como você se chama?"
-              value={profile.name || ''}
-              onChangeText={(text) => setProfile({ ...profile, name: text })}
-            />
-            
-            <TouchableOpacity 
-              onPress={() => setStep('age')}
-              disabled={!profile.name}
-              style={[styles.buttonPrimary, !profile.name && styles.buttonDisabled]}
-            >
-              <View style={styles.buttonContent}>
-                <Text style={styles.buttonText}>Começar</Text>
-                <ChevronRight size={24} color="#FFF" />
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  if (step === 'welcome') return <Welcome
+    step={step} 
+    setStep={setStep} 
+    profile={profile} 
+    setProfile={setProfile} 
+    />
 
-  if (step === 'age') {
-    return (
-      <SafeAreaView style={styles.containerLight}>
-        <View style={styles.padding}>
-          <TouchableOpacity onPress={() => setStep('welcome')} style={styles.backButton}>
-            <ArrowLeft size={24} color="#2563EB" />
-            <Text style={styles.backButtonText}>Voltar</Text>
-          </TouchableOpacity>
-          
-          <View style={styles.wizardContainer}>
-            <View style={styles.centerText}>
-              <Text style={styles.wizardTitle}>Qual é sua idade?</Text>
-              <Text style={styles.wizardSubtitle}>Isso nos ajuda a personalizar seus exercícios</Text>
-            </View>
+  if (step === 'age') return <SelectAge 
+    step={step} 
+    setStep={setStep} 
+    profile={profile} 
+    setProfile={setProfile} 
+    />  
 
-            <View style={styles.card}>
-              <TextInput
-                style={styles.inputHuge}
-                placeholder="Ex: 65"
-                keyboardType="numeric"
-                maxLength={3}
-                value={profile.age?.toString() || ''}
-                onChangeText={(text) => setProfile({ ...profile, age: parseInt(text) || 0 })}
-              />
-              <Text style={styles.unitText}>anos</Text>
-            </View>
+  if (step === 'restrictions') return <Restrictions 
+    setStep={setStep} 
+    profile={profile} 
+    handleRestrictionToggle={handleRestrictionToggle} 
+    />
 
-            <TouchableOpacity
-              onPress={() => setStep('restrictions')}
-              disabled={!profile.age || profile.age < 50}
-              style={[styles.buttonPrimary, (!profile.age || profile.age < 50) && styles.buttonDisabled]}
-            >
-              <View style={styles.buttonContent}>
-                <Text style={styles.buttonText}>Continuar</Text>
-                <ChevronRight size={24} color="#FFF" />
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (step === 'restrictions') {
-    const restrictions = [
-      { id: 'knee_pain', label: 'Dor nos joelhos' },
-      { id: 'back_pain', label: 'Dor nas costas' },
-      { id: 'heart_condition', label: 'Problema cardíaco' },
-    ];
-
-    return (
-      <SafeAreaView style={styles.containerLight}>
-        <ScrollView contentContainerStyle={styles.padding}>
-          <TouchableOpacity onPress={() => setStep('age')} style={styles.backButton}>
-            <ArrowLeft size={24} color="#2563EB" />
-            <Text style={styles.backButtonText}>Voltar</Text>
-          </TouchableOpacity>
-          
-          <View style={styles.wizardContainer}>
-            <View style={styles.centerText}>
-              <Text style={styles.wizardTitle}>Limitações Físicas</Text>
-              <Text style={styles.wizardSubtitle}>Selecione todas que se aplicam</Text>
-            </View>
-
-            <View style={styles.optionsContainer}>
-              {restrictions.map(({ id, label }) => {
-                const isSelected = profile.restrictions?.includes(id);
-                return (
-                  <TouchableOpacity
-                    key={id}
-                    onPress={() => handleRestrictionToggle(id)}
-                    style={[styles.optionButton, isSelected && styles.optionButtonSelected]}
-                  >
-                    <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
-                      {label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-              
-              <TouchableOpacity
-                onPress={() => handleRestrictionToggle('none')}
-                style={[
-                  styles.optionButton, 
-                  profile.restrictions?.includes('none') && styles.optionButtonSuccess
-                ]}
-              >
-                <Text style={[
-                    styles.optionText, 
-                    profile.restrictions?.includes('none') && styles.optionTextSelected
-                ]}>
-                  ✓ Nenhuma limitação
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              onPress={() => setStep('availability')}
-              style={styles.buttonPrimary}
-            >
-              <View style={styles.buttonContent}>
-                <Text style={styles.buttonText}>Continuar</Text>
-                <ChevronRight size={24} color="#FFF" />
-              </View>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
-
-  if (step === 'availability') {
-    const days = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
-
-    return (
-      <SafeAreaView style={styles.containerLight}>
-        <ScrollView contentContainerStyle={styles.padding}>
-          <TouchableOpacity onPress={() => setStep('restrictions')} style={styles.backButton}>
-            <ArrowLeft size={24} color="#2563EB" />
-            <Text style={styles.backButtonText}>Voltar</Text>
-          </TouchableOpacity>
-          
-          <View style={styles.wizardContainer}>
-            <View style={styles.centerText}>
-              <Text style={styles.wizardTitle}>Disponibilidade</Text>
-              <Text style={styles.wizardSubtitle}>Quando você pode se exercitar?</Text>
-            </View>
-
-            <View style={styles.sectionContainer}>
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>Dias da semana</Text>
-                <View style={styles.gridContainer}>
-                  {days.map(day => {
-                     const isSelected = profile.availability?.days.includes(day);
-                     return (
-                      <TouchableOpacity
-                        key={day}
-                        onPress={() => handleDayToggle(day)}
-                        style={[styles.gridItem, isSelected && styles.gridItemSelected]}
-                      >
-                        <Text style={[styles.gridItemText, isSelected && styles.gridItemTextSelected]}>
-                          {day.slice(0, 3)}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              </View>
-
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>Horário preferido</Text>
-                <TextInput
-                  style={styles.inputCenter}
-                  placeholder="08:00"
-                  value={profile.availability?.time}
-                  onChangeText={(text) => setProfile({
-                    ...profile,
-                    availability: { ...profile.availability!, time: text }
-                  })}
-                />
-              </View>
-            </View>
-
-            <TouchableOpacity
-              onPress={handleGenerateSchedule}
-              disabled={!profile.availability?.days.length}
-              style={[styles.buttonSuccess, !profile.availability?.days.length && styles.buttonDisabled]}
-            >
-               <View style={styles.buttonContent}>
-                <Text style={styles.buttonText}>Criar Meu Programa ✨</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
+  if (step === 'availability') return <Availability 
+    setStep={setStep} 
+    profile={profile} 
+    setProfile={setProfile} 
+    handleGenerateSchedule={handleGenerateSchedule} 
+    handleDayToggle={handleDayToggle}
+    />
+  
 
   if (step === 'loading') {
     return (
@@ -641,58 +351,13 @@ export default function App() {
     const nextExercise = nextActivity ? getExerciseById(nextActivity.exerciseId) : null;
 
     if (selectedActivity) {
-      const exercise = getExerciseById(selectedActivity.exerciseId);
-      return (
-        <SafeAreaView style={styles.containerLight}>
-          <ScrollView contentContainerStyle={styles.padding}>
-            <View style={styles.headerRow}>
-              <TouchableOpacity onPress={() => setSelectedActivity(null)} style={styles.backButton}>
-                <ArrowLeft size={24} color="#2563EB" />
-                <Text style={styles.backButtonText}>Voltar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleLogout}>
-                <Text style={styles.logoutText}>Sair</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.card}>
-              <Text style={styles.detailTitle}>{exercise?.title}</Text>
-              
-              <View style={styles.tagsRow}>
-                <View style={styles.tagBlue}>
-                  <Text style={styles.tagTextBlue}>{exercise?.category}</Text>
-                </View>
-                <View style={styles.tagPurple}>
-                  <Clock size={16} color="#6B21A8" />
-                  <Text style={styles.tagTextPurple}> {exercise?.durationMin} min</Text>
-                </View>
-              </View>
-
-              <View style={styles.instructionBox}>
-                <Text style={styles.sectionHeader}>Instruções</Text>
-                <Text style={styles.descriptionText}>
-                  {exercise?.description}
-                </Text>
-              </View>
-
-              {selectedActivity.status === 'pending' && (
-                <TouchableOpacity
-                  onPress={() => {
-                    handleCompleteExercise(selectedActivity.date);
-                    setSelectedActivity(null);
-                  }}
-                  style={styles.buttonSuccess}
-                >
-                  <View style={styles.buttonContent}>
-                    <CheckCircle size={24} color="#FFF" />
-                    <Text style={styles.buttonText}>Marcar como Concluído</Text>
-                  </View>
-                </TouchableOpacity>
-              )}
-            </View>
-          </ScrollView>
-        </SafeAreaView>
-      );
+      return <ActivityCard 
+        getExerciseById={getExerciseById} 
+        selectedActivity={selectedActivity} 
+        setSelectedActivity={setSelectedActivity} 
+        handleLogout={handleLogout} 
+        handleCompleteExercise={handleCompleteExercise} 
+        />
     }
 
     return (
