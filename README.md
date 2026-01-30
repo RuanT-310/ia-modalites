@@ -89,18 +89,12 @@ A arquitetura segue o padrão **Container/Presentational**:
 
 ```
 ia-modalities/
-├── app/                  # Rotas e Containers (Lógica de Navegação)
-│   ├── (auth)/           # Grupo de rotas públicas (Login)
-│   ├── (drawer)/         # Grupo de rotas do Menu Lateral
-│   ├── (wizard)/         # Fluxo de cadastro inicial
-│   └── _layout.tsx       # Configuração global e Auth Guard
-├── src/
-    ├── components/       # Componentes Visuais Reutilizáveis (UI)
-    ├── context/          # Estado Global (Context API)
-    ├── db/               # Configuração do Banco de Dados e Schema
-    ├── repository/       # Camada de Acesso a Dados (CRUD)
-    ├── services/         # Integrações Externas (IA Service)
-    └── styles/           # Estilos globais
+├── components/       # Componentes Visuais Reutilizáveis (UI)
+├── context/          # Estado Global (Context API)
+├── page/             # Paginas da aplicação
+├── repository/       # Camada de Acesso a Dados (CRUD)
+├── services/         # Integrações Externas (IA Service)
+└── hooks/            # Conponentes de alteração visual
 ```
 
 ---
